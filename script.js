@@ -6,9 +6,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // GitHub API URL for the Umbraco icons directory
     const githubApiUrl = 'https://api.github.com/repos/umbraco/Umbraco-CMS/contents/src/Umbraco.Web.UI.Client/src/packages/core/icon-registry/icons';
+    
+    // Local storage key
+    const ICONS_STORAGE_KEY = 'umbracoIcons';
+    const ICONS_TIMESTAMP_KEY = 'umbracoIconsTimestamp';
+
+    // Save icons to local storage
+    function saveIconsToLocalStorage(icons) {
+        try {
+            localStorage.setItem(ICONS_STORAGE_KEY, JSON.stringify(icons));
+            localStorage.setItem(ICONS_TIMESTAMP_KEY, Date.now());
+            console.log('Icons saved to local storage');
+        } catch (error) {
+            console.error('Error saving to local storage:', error);
+        }
+    }
+
+    // Get icons from local storage
+    function getIconsFromLocalStorage() {
+        try {
+            const icons = localStorage.getItem(ICONS_STORAGE_KEY);
+            return icons ? JSON.parse(icons) : null;
+        } catch (error) {
+            console.error('Error retrieving from local storage:', error);
+            return null;
+        }
+    }
 
     // Fetch icons from GitHub
     async function fetchIcons() {
+        // First try to load from local storage for immediate display
+        const cachedIcons = getIconsFromLocalStorage();
+        if (cachedIcons && cachedIcons.length > 0) {
+            console.log('Loading icons from local storage');
+            allIcons = cachedIcons;
+            displayIcons(allIcons);
+        }
+
+        // Then fetch fresh icons from GitHub
         try {
             const response = await fetch(githubApiUrl);
             
@@ -39,10 +74,26 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             allIcons = await Promise.all(iconPromises);
+            
+            // Save to local storage for offline use
+            saveIconsToLocalStorage(allIcons);
+            
+            // Update display with fresh icons
             displayIcons(allIcons);
+            
+            // Show toast notification if we initially loaded from cache
+            if (cachedIcons && cachedIcons.length > 0) {
+                showToast('Icons updated from GitHub');
+            }
         } catch (error) {
             console.error('Error fetching icons:', error);
-            iconsGrid.innerHTML = `<div class="error">Error loading icons: ${error.message}</div>`;
+            
+            // If we have cached icons, keep using them
+            if (!(cachedIcons && cachedIcons.length > 0)) {
+                iconsGrid.innerHTML = `<div class="error">Error loading icons: ${error.message}</div>`;
+            } else {
+                showToast('Using cached icons - couldn\'t connect to GitHub', 'warning');
+            }
         }
     }
     
@@ -65,6 +116,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (icons.length === 0) {
             iconsGrid.innerHTML = '<div class="no-results">No icons found</div>';
             return;
+        }
+
+        // Remove loading indicator if it exists
+        const loadingElement = document.querySelector('.loading');
+        if (loadingElement) {
+            loadingElement.remove();
         }
 
         iconsGrid.innerHTML = icons.map(icon => `

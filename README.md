@@ -9,6 +9,8 @@ A searchable gallery of Umbraco icons with copy-to-clipboard functionality.
 - Click on any icon to copy its name to clipboard
 - Toast notifications for user feedback
 - Responsive design with dark mode support
+- Installable as a Progressive Web App (PWA)
+- Works offline after initial load
 
 ## Development
 
