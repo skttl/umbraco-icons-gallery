@@ -1,11 +1,15 @@
 // Service Worker for Umbraco Icons Gallery PWA
-const CACHE_NAME = 'umbraco-icons-gallery-v1';
+const CACHE_NAME = 'umbraco-icons-gallery-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './styles.css',
   './script.js',
-  './manifest.json'
+  './pwa.js',
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/icon.svg'
 ];
 
 // Install event - cache assets

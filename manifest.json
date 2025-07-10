@@ -2,7 +2,8 @@
   "name": "Umbraco Icons Gallery",
   "short_name": "Umbraco Icons",
   "description": "A searchable gallery of Umbraco icons with copy-to-clipboard functionality",
-  "start_url": "./index.html",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#f2eae5",
   "theme_color": "#3746b9",
@@ -19,6 +20,15 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "icons/screenshot.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Homescreen of Umbraco Icons Gallery"
     }
   ]
 }

@@ -35,29 +35,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch icons from GitHub
     async function fetchIcons() {
+        console.log('Starting fetchIcons function');
+        
         // First try to load from local storage for immediate display
         const cachedIcons = getIconsFromLocalStorage();
         if (cachedIcons && cachedIcons.length > 0) {
-            console.log('Loading icons from local storage');
+            console.log('Loading icons from local storage, found', cachedIcons.length, 'icons');
             allIcons = cachedIcons;
             displayIcons(allIcons);
+        } else {
+            console.log('No icons found in local storage');
+            // Show loading state if no cached icons
+            iconsGrid.innerHTML = '<div class="loading">Loading icons...</div>';
         }
 
         // Then fetch fresh icons from GitHub
         try {
-            const response = await fetch(githubApiUrl);
+            console.log('Fetching icons from GitHub API:', githubApiUrl);
+            const response = await fetch(githubApiUrl, {
+                headers: {
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
             
+            console.log('GitHub API response status:', response.status);
             if (!response.ok) {
                 throw new Error(`GitHub API error: ${response.status}`);
             }
             
             const data = await response.json();
+            console.log('GitHub API returned data with', data.length, 'items');
             
             // Filter only TypeScript files
             const tsFiles = data.filter(file => file.name.endsWith('.ts'));
+            console.log('Found', tsFiles.length, 'TypeScript files');
+            
+            if (tsFiles.length === 0) {
+                throw new Error('No TypeScript files found in the GitHub repository');
+            }
             
             // Fetch content of each TypeScript file
             const iconPromises = tsFiles.map(async file => {
+                console.log('Fetching TypeScript file:', file.name, 'from URL:', file.download_url);
                 const tsResponse = await fetch(file.download_url);
                 if (!tsResponse.ok) {
                     throw new Error(`Failed to fetch TypeScript file: ${file.name}`);
@@ -73,18 +92,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             });
             
+            console.log('Waiting for all TypeScript files to be processed...');
             allIcons = await Promise.all(iconPromises);
+            console.log('Successfully processed', allIcons.length, 'icons');
             
             // Save to local storage for offline use
             saveIconsToLocalStorage(allIcons);
             
             // Update display with fresh icons
             displayIcons(allIcons);
-            
-            // Show toast notification if we initially loaded from cache
-            if (cachedIcons && cachedIcons.length > 0) {
-                showToast('Icons updated from GitHub');
-            }
         } catch (error) {
             console.error('Error fetching icons:', error);
             
